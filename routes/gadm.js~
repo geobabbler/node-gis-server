@@ -20,7 +20,18 @@ exports.bbox = function(req, res) {
     
     //res.send({iso:req.params.id, top: 90, bottom: -90, left: -180, right: 180});
 };
- 
+
+exports.bboxSrid = function(req, res) {
+    //TODO: Flesh this out. Logic will be similar to bounding box. Include transform to specified SRID.
+    res.send({id:req.params.id, srid:req.params.srid, name: "bbox", description: "insert GeoJSON here"});
+};
+
 exports.polygon = function(req, res) {
+    //TODO: Flesh this out. Logic will be similar to bounding box.
     res.send({id:req.params.id, name: "polygon", description: "insert GeoJSON here"});
+};
+
+exports.polygonSrid = function(req, res) {
+    //TODO: Flesh this out. Logic will be similar to polygon. Include transform to specified SRID.
+    res.send({id:req.params.id, srid:req.params.srid, name: "polygon", description: "insert GeoJSON here"});
 };

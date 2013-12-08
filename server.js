@@ -4,7 +4,9 @@ var express = require('express'),
 var app = express();
  
 app.get('/bbox/:id', gadm.bbox);
+app.get('/bbox/:id/:srid', gadm.bboxSrid);
 app.get('/polygon/:id', gadm.polygon);
+app.get('/polygon/:id/:srid', gadm.polygonSrid);
  
 app.listen(3000);
 console.log('Listening on port 3000...');
