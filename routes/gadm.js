@@ -1,11 +1,14 @@
 var pg = require('pg');
-var conString = "postgres://bdollins:moondog1@localhost:5432/leonardtown"; //TODO: point to RDS instance
+var conString = "postgres://rdsuser:ZAQ!xsw2@awspostgis.cj4hnqu23ghb.us-east-1.rds.amazonaws.com:5432/geodb"; //TODO: point to RDS instance
 var client = new pg.Client(conString);
 
 exports.bbox = function(req, res) {
     client.connect();
     //TODO: Select bounding box of GADM polygon based on ID, return as geojson.
-    var query = client.query("select st_asgeojson(the_geom) as geojson from ltown_bldgs where cartodb_id = 1;"); 
+//query = client.query('SELECT COUNT(date) AS count FROM visits WHERE date = $1', [date]);
+    var idformat = "'" + req.params.id + "'";
+    idformat = idformat.toUpperCase();  
+    var query = client.query("select st_asgeojson(st_envelope(wkb_geometry)) as geojson from countries where iso = " + idformat + ";"); 
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);
