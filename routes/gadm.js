@@ -58,7 +58,7 @@ exports.polygon = function(req, res) {
           return res.send('No data found');
         } else {
           res.setHeader('Content-Type', 'application/json');
-          res.send({type: "feature", crs: crsobj, geometry: JSON.parse(result.geojson), properties:{"iso": req.params.id, "representation": "extent"}});
+          res.send({type: "feature", crs: crsobj, geometry: JSON.parse(result.geojson), properties:{"iso": req.params.id, "representation": "boundary"}});
         }
       }); };
 
@@ -77,6 +77,6 @@ exports.polygonSrid = function(req, res) {
           return res.send('No data found');
         } else {
           res.setHeader('Content-Type', 'application/json');
-          res.send({type: "feature",crs: crsobj, geometry: JSON.parse(result.geojson), properties:{"iso": req.params.id, "representation": "extent"}});
+          res.send({type: "feature",crs: crsobj, geometry: JSON.parse(result.geojson), properties:{"iso": req.params.id, "representation": "boundary"}});
         }
       }); };

@@ -24,9 +24,7 @@ exports.bbox = function(req, res) {
 
 exports.bboxSrid = function(req, res) {
     var client = new pg.Client(conString);
-    console.log(conString);
     client.connect();
-    console.log('here');
     var crsobj = {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG:6.3:" + req.params.srid}};
     var idformat = "'" + req.params.id + "'";
     idformat = idformat.toUpperCase();  
@@ -65,6 +63,20 @@ exports.polygon = function(req, res) {
       }); };
 
 exports.polygonSrid = function(req, res) {
-    //TODO: Flesh this out. Logic will be similar to polygon. Include transform to specified SRID.
-    res.send({id:req.params.id, srid:req.params.srid, name: "polygon", description: "insert GeoJSON here"});
-};
+    var client = new pg.Client(conString);
+    client.connect();
+    var crsobj = {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG:6.3:" + req.params.srid}};
+    var idformat = "'" + req.params.id + "'";
+    idformat = idformat.toUpperCase();  
+    var query = client.query("select st_asgeojson(st_transform(wkb_geometry, " + req.params.srid + ")) as geojson from countries where iso = " + idformat + ";"); 
+    var retval = "no data";
+    query.on('row', function(result) {
+        //console.log(result);
+    
+        if (!result) {
+          return res.send('No data found');
+        } else {
+          res.setHeader('Content-Type', 'application/json');
+          res.send({type: "feature",crs: crsobj, geometry: JSON.parse(result.geojson), properties:{"iso": req.params.id, "representation": "extent"}});
+        }
+      }); };
