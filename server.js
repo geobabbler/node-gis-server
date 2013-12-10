@@ -1,5 +1,5 @@
 var express = require('express'),
-    geo = require('./routes/gadm');
+    geo = require('./routes/geo');
  
 var app = express();
  
