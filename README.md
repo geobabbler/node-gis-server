@@ -1,6 +1,6 @@
 gadm-service
 ============
 
-Node.js application to provide a REST interface to [GADM](http://gadm.org) data hosted in Amazon RDS (PostgreSQL/PostGIS).
+Node.js application to provide a REST interface to [Natural Earth](http://www.naturalearthdata.com/) data hosted in Amazon RDS (PostgreSQL/PostGIS).
 
 See package.json for dependencies.
