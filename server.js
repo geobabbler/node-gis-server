@@ -8,5 +8,5 @@ app.get('/countries/:id/bbox/:srid', gadm.bboxSrid);
 app.get('/countries/:id/polygon', gadm.polygon);
 app.get('/countries/:id/polygon/:srid', gadm.polygonSrid);
  
-app.listen(80);
+app.listen(3000);
 console.log('Listening on port 80...');
