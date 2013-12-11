@@ -7,7 +7,7 @@ exports.bbox = function(req, res) {
     var crsobj = {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG:6.3:4326"}};
     var idformat = "'" + req.params.id + "'";
     idformat = idformat.toUpperCase();  
-    var query = client.query("select st_asgeojson(st_envelope(wkb_geometry)) as geojson from countries where iso = " + idformat + ";"); 
+    var query = client.query("select st_asgeojson(st_envelope(shape)) as geojson from ne_countries where iso_a3 = " + idformat + ";"); 
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);
@@ -28,7 +28,7 @@ exports.bboxSrid = function(req, res) {
     var crsobj = {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG:6.3:" + req.params.srid}};
     var idformat = "'" + req.params.id + "'";
     idformat = idformat.toUpperCase();  
-    var query = client.query("select st_asgeojson(st_envelope(st_transform(wkb_geometry, " + req.params.srid + "))) as geojson from countries where iso = " + idformat + ";"); 
+    var query = client.query("select st_asgeojson(st_envelope(st_transform(shape, " + req.params.srid + "))) as geojson from ne_countries where iso_a3 = " + idformat + ";"); 
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);
@@ -49,7 +49,7 @@ exports.polygon = function(req, res) {
     var crsobj = {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG:6.3:4326"}};
     var idformat = "'" + req.params.id + "'";
     idformat = idformat.toUpperCase();  
-    var query = client.query("select st_asgeojson(wkb_geometry) as geojson from countries where iso = " + idformat + ";"); 
+    var query = client.query("select st_asgeojson(shape) as geojson from ne_countries where iso_a3 = " + idformat + ";"); 
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);
@@ -68,7 +68,7 @@ exports.polygonSrid = function(req, res) {
     var crsobj = {"type": "name","properties": {"name": "urn:ogc:def:crs:EPSG:6.3:" + req.params.srid}};
     var idformat = "'" + req.params.id + "'";
     idformat = idformat.toUpperCase();  
-    var query = client.query("select st_asgeojson(st_transform(wkb_geometry, " + req.params.srid + ")) as geojson from countries where iso = " + idformat + ";"); 
+    var query = client.query("select st_asgeojson(st_transform(shape, " + req.params.srid + ")) as geojson from ne_countries where iso_a3 = " + idformat + ";"); 
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);

@@ -9,4 +9,4 @@ app.get('/countries/:id/polygon', geo.polygon);
 app.get('/countries/:id/polygon/:srid', geo.polygonSrid);
  
 app.listen(3000);
-console.log('Listening on port 80...');
+console.log('Listening on port 3000...');
