@@ -11,6 +11,7 @@ exports.bbox = function(req, res) {
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);
+        client.end();
     
         if (!result) {
           return res.send('No data found');
@@ -32,7 +33,8 @@ exports.bboxSrid = function(req, res) {
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);
-    
+         client.end();
+   
         if (!result) {
           return res.send('No data found');
         } else {
@@ -53,7 +55,8 @@ exports.polygon = function(req, res) {
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);
-    
+         client.end();
+   
         if (!result) {
           return res.send('No data found');
         } else {
@@ -72,7 +75,8 @@ exports.polygonSrid = function(req, res) {
     var retval = "no data";
     query.on('row', function(result) {
         //console.log(result);
-    
+         client.end();
+   
         if (!result) {
           return res.send('No data found');
         } else {
