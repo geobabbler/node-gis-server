@@ -84,3 +84,10 @@ exports.polygonSrid = function(req, res) {
           res.send({type: "feature",crs: crsobj, geometry: JSON.parse(result.geojson), properties:{"iso": req.params.id, "representation": "boundary"}});
         }
       }); };
+
+exports.queryByPoly - function(req, res) {
+    var client = new pg.Client(conString);
+    client.connect();
+    var queryShape = req.query.shape;
+    
+};
