@@ -1,6 +1,6 @@
 {
-    "name": "gadm-countries",
-    "description": "GADM Countries Application",
+    "name": "node-gis-server",
+    "description": "Node GIS Server",
     "version": "0.0.1",
     "private": true,
     "contributors": {
