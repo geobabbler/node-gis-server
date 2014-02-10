@@ -1,5 +1,5 @@
 var pg = require('pg');
-var conString = "postgres://rdsuser:ZAQ!xsw2@awspostgis.cj4hnqu23ghb.us-east-1.rds.amazonaws.com:5432/geodb"; //TODO: point to RDS instance
+var conString = "postgres://{username}:{password}@{host}:{port}/{database}"; //TODO: point to RDS instance
 
 exports.bbox = function(req, res) {
     var client = new pg.Client(conString);
