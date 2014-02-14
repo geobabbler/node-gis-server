@@ -1,11 +1,13 @@
 var pg = require('pg');
-var conString = "postgres://{username}:{password}@{host}:{port}/{database}";
-
+//var conString = "postgres://{username}:{password}@{host}:{port}/{database}";
+var conString = "postgres://bdollins:ZAQ!xsw2@localhost:5432/leonardtown";
 
 module.exports.controller = function(app) {
 
+/* feature retrieval */
+
 /**
- * a home page route
+ * retrieve all features (this could be really slow)
  */
   app.get('/vector/:schema/:table/features', function(req, res) {
     var client = new pg.Client(conString);
@@ -21,7 +23,7 @@ module.exports.controller = function(app) {
     meta.on('row', function(row) { 
     var coll = {type: "FeatureCollection", features: []};
         spatialcol = row.f_geometry_column;
-    var query = client.query("select st_asgeojson(" + spatialcol + ") as geojson, * from " + fullname + ";"); // iso_a3 = " + idformat + ";"); 
+    var query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson, * from " + fullname + ";"); // iso_a3 = " + idformat + ";"); 
      query.on('row', function(result) {
     	var props = new Object;
         if (!result) {
@@ -57,6 +59,7 @@ app.post('/vector/:schema/:table/features/intersect', function(req, res) {
 
 /*  Schema inspection functions  */
 
+/* fetch table schema */
 app.get('/vector/:schema/:table/schema', function(req, res) {
     var client = new pg.Client(conString);
     var schemaname = req.params.schema;
