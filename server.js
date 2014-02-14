@@ -7,14 +7,6 @@ var app = express();
 app.use(express.bodyParser());
 app.use(app.router);
  
-//get methods
-app.get('/countries/:id/bbox', geo.bbox);
-app.get('/countries/:id/bbox/:srid', geo.bboxSrid);
-app.get('/countries/:id/polygon', geo.polygon);
-app.get('/countries/:id/polygon/:srid', geo.polygonSrid);
-//post methods
-//app.post('/countries', geo.queryByPoly);
-
 // dynamically include routes (Controller)
 fs.readdirSync('./controllers').forEach(function (file) {
   if(file.substr(-3) == '.js') {
