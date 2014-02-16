@@ -167,4 +167,65 @@ module.exports.controller = function (app) {
 		});
 
 	});
+
+	/* fetch table schema (not compatible with PostGIS versions prior to 1.5) */
+	app.get('/vector/layers/:geotype', function (req, res) {
+		var client = new pg.Client(conString);
+		var sql = "SELECT 'geometry' as geotype, * FROM geometry_columns;";
+		if (req.params.geotype.toLowerCase() == "geography")
+		{
+		sql = "SELECT 'geography' as geotype, * FROM geography_columns;";
+		}
+		else if (req.params.geotype.toLowerCase() == "all")
+		{
+		sql = "SELECT 'geometry' AS geotype, * FROM geometry_columns UNION SELECT 'geography' as geotype, * FROM geography_columns;";
+		}
+		var retval = [];
+		client.connect();
+		var query = client.query(sql);
+		query.on('row', function (result) {
+			var props = new Object;
+			if (!result) {
+				return res.send('No data found');
+			} else {
+				retval.push(getRow(result, req.params.geotype.toLowerCase()));
+				/*retval.push({
+					geoType : "geometry",
+					database : result.f_table_catalog,
+					schema : result.f_table_schema,
+					table : result.f_table_name,
+					spatialColumn : result.f_geometry_column,
+					dimension : result.coord_dimension,
+					srid : result.srid,
+					spatialType : result.type
+				});*/
+			}
+		});
+
+		query.on('end', function (result) {
+			res.setHeader('Content-Type', 'application/json');
+			res.send(retval);
+		});
+
+	});
+
+	function getRow(result, geomtype) {
+		var retval = {
+			geoType : result.geotype,
+			database : result.f_table_catalog,
+			schema : result.f_table_schema,
+			table : result.f_table_name,
+			spatialColumn : null,
+			dimension : result.coord_dimension,
+			srid : result.srid,
+			spatialType : result.type
+		};
+		if ((geomtype == "geometry") || (geomtype == "all")) {
+			retval.spatialColumn = result.f_geometry_column;
+		}
+		else{
+			retval.spatialColumn = result.f_geography_column;
+		}
+		return retval;
+	}
 }

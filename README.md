@@ -12,3 +12,5 @@ Changelog
 2014-02-11 - Added core.js to implement basic feature query. Implemented return of GeoJSON FeatureCollection.
 
 2014-02-14 - Added function to perform intersect query using input GeoJSON geometry. Added function to return schema of a specified table. Defaulted all output features to WGS84.
+
+2014-02-16 - Added function to return list of layers (geometry, geography, or both).
