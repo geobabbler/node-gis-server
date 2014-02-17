@@ -9,8 +9,14 @@ module.exports.controller = function (app) {
 	/**
 	 * retrieve all features (this could be really slow and is probably not what you really want to do)
 	 */
-	app.get('/vector/:schema/:table/features', function (req, res) {
+	app.get('/vector/:schema/:table/:geom', function (req, res) {
 		var client = new pg.Client(conString);
+		var geom = req.params.geom.toLowerCase();
+		if ((geom != "features") && (geom != "geometry"))
+		{
+			res.status(404).send("Resource '" + geom + "' not found");
+			return;
+		}
 		var schemaname = req.params.schema;
 		var tablename = req.params.table;
 		var fullname = schemaname + "." + tablename;
@@ -26,31 +32,36 @@ module.exports.controller = function (app) {
 		var spatialcol = "";
 		var meta = client.query("select * from geometry_columns where f_table_name = '" + tablename + "' and f_table_schema = '" + schemaname + "';");
 		meta.on('row', function (row) {
-			var coll = {
-				type : "FeatureCollection",
-				features : []
-			};
+			var query;
+			var coll;
 			spatialcol = row.f_geometry_column;
-			var query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson, * from " + fullname + ";"); // iso_a3 = " + idformat + ";");
+			if (geom == "features") {
+				query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson, * from " + fullname + ";");
+				coll = {
+					type : "FeatureCollection",
+					features : []
+				};
+			} else if (geom == "geometry") {
+				query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson from " + fullname + ";");
+				coll = {
+					type : "GeometryCollection",
+					geometries : []
+				};
+			}
 			query.on('row', function (result) {
-				var props = new Object;
+				//var props = new Object;
 				if (!result) {
 					return res.send('No data found');
 				} else {
-					for (var k in result) {
-						if (result.hasOwnProperty(k)) {
-							var nm = "" + k;
-							if ((nm != "geojson") && nm != spatialcol) {
-								props[nm] = result[k];
-							}
-						}
+					if (geom == "features") {
+						coll.features.push(getFeatureResult(result, spatialcol));
 					}
-					coll.features.push({
-						type : "Feature",
-						crs : crsobj,
-						geometry : JSON.parse(result.geojson),
-						properties : props
-					});
+					else if (geom == "geometry")
+					{
+						var shape = JSON.parse(result.geojson);
+						//shape.crs = crsobj;
+						coll.geometries.push(shape);
+					}
 				}
 			});
 
@@ -172,13 +183,10 @@ module.exports.controller = function (app) {
 	app.get('/vector/layers/:geotype', function (req, res) {
 		var client = new pg.Client(conString);
 		var sql = "SELECT 'geometry' as geotype, * FROM geometry_columns;";
-		if (req.params.geotype.toLowerCase() == "geography")
-		{
-		sql = "SELECT 'geography' as geotype, * FROM geography_columns;";
-		}
-		else if (req.params.geotype.toLowerCase() == "all")
-		{
-		sql = "SELECT 'geometry' AS geotype, * FROM geometry_columns UNION SELECT 'geography' as geotype, * FROM geography_columns;";
+		if (req.params.geotype.toLowerCase() == "geography") {
+			sql = "SELECT 'geography' as geotype, * FROM geography_columns;";
+		} else if (req.params.geotype.toLowerCase() == "all") {
+			sql = "SELECT 'geometry' AS geotype, * FROM geometry_columns UNION SELECT 'geography' as geotype, * FROM geography_columns;";
 		}
 		var retval = [];
 		client.connect();
@@ -189,16 +197,6 @@ module.exports.controller = function (app) {
 				return res.send('No data found');
 			} else {
 				retval.push(getRow(result, req.params.geotype.toLowerCase()));
-				/*retval.push({
-					geoType : "geometry",
-					database : result.f_table_catalog,
-					schema : result.f_table_schema,
-					table : result.f_table_name,
-					spatialColumn : result.f_geometry_column,
-					dimension : result.coord_dimension,
-					srid : result.srid,
-					spatialType : result.type
-				});*/
 			}
 		});
 
@@ -222,10 +220,34 @@ module.exports.controller = function (app) {
 		};
 		if ((geomtype == "geometry") || (geomtype == "all")) {
 			retval.spatialColumn = result.f_geometry_column;
-		}
-		else{
+		} else {
 			retval.spatialColumn = result.f_geography_column;
 		}
 		return retval;
+	}
+
+	function getFeatureResult(result, spatialcol) {
+		var props = new Object;
+		var crsobj = {
+			"type" : "name",
+			"properties" : {
+				"name" : "urn:ogc:def:crs:EPSG:6.3:4326"
+			}
+		};
+		for (var k in result) {
+			if (result.hasOwnProperty(k)) {
+				var nm = "" + k;
+				if ((nm != "geojson") && nm != spatialcol) {
+					props[nm] = result[k];
+				}
+			}
+		}
+
+		return {
+			type : "Feature",
+			crs : crsobj,
+			geometry : JSON.parse(result.geojson),
+			properties : props
+		};
 	}
 }
