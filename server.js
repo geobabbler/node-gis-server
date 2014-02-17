@@ -4,6 +4,7 @@ var express = require('express'),
 var app = express();
 app.use(express.bodyParser());
 app.use(app.router);
+app.use(error);
  
 // dynamically include routes (Controller)
 fs.readdirSync('./controllers').forEach(function (file) {
@@ -13,6 +14,13 @@ fs.readdirSync('./controllers').forEach(function (file) {
   }
 });
 
+function error(err, req, res, next) {
+  // log it
+  console.error(err.stack);
+
+  // respond with 500 "Internal Server Error".
+  res.send(500);
+}
  
 app.listen(3000);
 console.log('Listening on port 3000...');

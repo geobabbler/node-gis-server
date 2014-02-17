@@ -9,7 +9,7 @@ module.exports.controller = function (app) {
 	/**
 	 * retrieve all features (this could be really slow and is probably not what you really want to do)
 	 */
-	app.get('/vector/:schema/:table/:geom', function (req, res) {
+	app.get('/vector/:schema/:table/:geom', function (req, res, next) {
 		var client = new pg.Client(conString);
 		var geom = req.params.geom.toLowerCase();
 		if ((geom != "features") && (geom != "geometry")) {
@@ -41,14 +41,13 @@ module.exports.controller = function (app) {
 					features : []
 				};
 			} else if (geom == "geometry") {
-				query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson from " + fullname + ";");
+				query = client.query("select st_askgeojson(st_transform(" + spatialcol + ",4326)) as geojson from " + fullname + ";");
 				coll = {
 					type : "GeometryCollection",
 					geometries : []
 				};
 			}
 			query.on('row', function (result) {
-				//var props = new Object;
 				if (!result) {
 					return res.send('No data found');
 				} else {
@@ -62,20 +61,23 @@ module.exports.controller = function (app) {
 				}
 			});
 
-			query.on('end', function (result) {
+			query.on('end', function (err, result) {
 				res.setHeader('Content-Type', 'application/json');
 				res.send(coll);
-
 			});
-
+			
+			query.on('error', function (error) {
+				//handle the error
+				//res.status(500).send(error);
+				//next();
+			});
 		});
-
 	});
 
 	/**
 	 * retrieve all features that intersect the input GeoJSON geometry
 	 */
-	app.post('/vector/:schema/:table/:geom/intersect', function (req, res) {
+	app.post('/vector/:schema/:table/:geom/intersect', function (req, res, next) {
 		//console.log(JSON.stringify(req.body));
 		var queryshape = JSON.stringify(req.body);
 		//res.status(501).send('Intersect not implemented');
@@ -139,7 +141,8 @@ module.exports.controller = function (app) {
 			});
 			query.on('error', function (error) {
 				//handle the error
-				res.status(500).send(error)
+				//res.status(500).send(error);
+				//next();
 			});
 
 		});
@@ -148,7 +151,7 @@ module.exports.controller = function (app) {
 	/*  Schema inspection functions  */
 
 	/* fetch table schema */
-	app.get('/vector/:schema/:table/schema', function (req, res) {
+	app.get('/vector/:schema/:table/schema', function (req, res, next) {
 		var client = new pg.Client(conString);
 		var schemaname = req.params.schema;
 		var tablename = req.params.table;
@@ -179,13 +182,13 @@ module.exports.controller = function (app) {
 		query.on('end', function (result) {
 			res.setHeader('Content-Type', 'application/json');
 			res.send(retval);
-
+			//
 		});
 
 	});
 
 	/* fetch table schema (not compatible with PostGIS versions prior to 1.5) */
-	app.get('/vector/layers/:geotype', function (req, res) {
+	app.get('/vector/layers/:geotype', function (req, res, next) {
 		var client = new pg.Client(conString);
 		var sql = "SELECT 'geometry' as geotype, * FROM geometry_columns;";
 		if (req.params.geotype.toLowerCase() == "geography") {
