@@ -1,6 +1,4 @@
 var express = require('express'),
-    geo = require('./routes/geo'),
-    custom = require('./routes/custom'),
     fs = require('fs');;
  
 var app = express();
