@@ -12,8 +12,7 @@ module.exports.controller = function (app) {
 	app.get('/vector/:schema/:table/:geom', function (req, res) {
 		var client = new pg.Client(conString);
 		var geom = req.params.geom.toLowerCase();
-		if ((geom != "features") && (geom != "geometry"))
-		{
+		if ((geom != "features") && (geom != "geometry")) {
 			res.status(404).send("Resource '" + geom + "' not found");
 			return;
 		}
@@ -55,9 +54,7 @@ module.exports.controller = function (app) {
 				} else {
 					if (geom == "features") {
 						coll.features.push(getFeatureResult(result, spatialcol));
-					}
-					else if (geom == "geometry")
-					{
+					} else if (geom == "geometry") {
 						var shape = JSON.parse(result.geojson);
 						//shape.crs = crsobj;
 						coll.geometries.push(shape);
@@ -78,11 +75,15 @@ module.exports.controller = function (app) {
 	/**
 	 * retrieve all features that intersect the input GeoJSON geometry
 	 */
-	app.post('/vector/:schema/:table/features/intersect', function (req, res) {
+	app.post('/vector/:schema/:table/:geom/intersect', function (req, res) {
 		//console.log(JSON.stringify(req.body));
 		var queryshape = JSON.stringify(req.body);
 		//res.status(501).send('Intersect not implemented');
-
+		var geom = req.params.geom.toLowerCase();
+		if ((geom != "features") && (geom != "geometry")) {
+			res.status(404).send("Resource '" + geom + "' not found");
+			return;
+		}
 		var client = new pg.Client(conString);
 		var schemaname = req.params.schema;
 		var tablename = req.params.table;
@@ -99,31 +100,35 @@ module.exports.controller = function (app) {
 		var spatialcol = "";
 		var meta = client.query("select * from geometry_columns where f_table_name = '" + tablename + "' and f_table_schema = '" + schemaname + "';");
 		meta.on('row', function (row) {
-			var coll = {
-				type : "FeatureCollection",
-				features : []
-			};
+			var query;
+			var coll;
 			spatialcol = row.f_geometry_column;
-			var query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson, * from " + fullname + " where ST_INTERSECTS(" + spatialcol + ", ST_SetSRID(ST_GeomFromGeoJSON('" + queryshape + "'),4326));"); // iso_a3 = " + idformat + ";");
+			if (geom == "features") {
+				query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson, * from " + fullname + " where ST_INTERSECTS(" + spatialcol + ", ST_SetSRID(ST_GeomFromGeoJSON('" + queryshape + "'),4326));");
+				coll = {
+					type : "FeatureCollection",
+					features : []
+				};
+			} else if (geom == "geometry") {
+				query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson from " + fullname + " where ST_INTERSECTS(" + spatialcol + ", ST_SetSRID(ST_GeomFromGeoJSON('" + queryshape + "'),4326));");
+				coll = {
+					type : "GeometryCollection",
+					geometries : []
+				};
+			}
+
 			query.on('row', function (result) {
 				var props = new Object;
 				if (!result) {
 					return res.send('No data found');
 				} else {
-					for (var k in result) {
-						if (result.hasOwnProperty(k)) {
-							var nm = "" + k;
-							if ((nm != "geojson") && nm != spatialcol) {
-								props[nm] = result[k];
-							}
-						}
+					if (geom == "features") {
+						coll.features.push(getFeatureResult(result, spatialcol));
+					} else if (geom == "geometry") {
+						var shape = JSON.parse(result.geojson);
+						//shape.crs = crsobj;
+						coll.geometries.push(shape);
 					}
-					coll.features.push({
-						type : "Feature",
-						crs : crsobj,
-						geometry : JSON.parse(result.geojson),
-						properties : props
-					});
 				}
 			});
 
