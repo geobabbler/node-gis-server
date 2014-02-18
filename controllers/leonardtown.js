@@ -7,14 +7,14 @@ module.exports.controller = function (app) {
 	/**
 	 * retrieve all features (this could be really slow and is probably not what you really want to do)
 	 */
-	app.get('/leonardtown/buildings/:bldgtype/:geom', function (req, res, next) {
+	app.get('/leonardtown/buildings/:geom', function (req, res, next) {
 		var client = new pg.Client(app.conString);
 		var geom = req.params.geom.toLowerCase();
 		if ((geom != "features") && (geom != "geometry")) {
 			res.status(404).send("Resource '" + geom + "' not found");
 			return;
 		}
-		var proptype = req.params.bldgtype;
+		var proptype = req.query.type;
 		var whereclause = ";";
 		if (proptype.toLowerCase() != "all"){
 			whereclause = " where structure_ = '" + proptype + "';";
