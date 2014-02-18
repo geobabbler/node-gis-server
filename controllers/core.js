@@ -41,7 +41,7 @@ module.exports.controller = function (app) {
 					features : []
 				};
 			} else if (geom == "geometry") {
-				query = client.query("select st_askgeojson(st_transform(" + spatialcol + ",4326)) as geojson from " + fullname + ";");
+				query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson from " + fullname + ";");
 				coll = {
 					type : "GeometryCollection",
 					geometries : []
@@ -69,7 +69,7 @@ module.exports.controller = function (app) {
 			query.on('error', function (error) {
 				//handle the error
 				//res.status(500).send(error);
-				//next();
+				next();
 			});
 		});
 	});
