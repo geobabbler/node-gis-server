@@ -1,4 +1,5 @@
 var pg = require('pg');
+var geojson = require('../helpers/geojson');
 
 module.exports.controller = function (app) {
 
@@ -50,7 +51,7 @@ module.exports.controller = function (app) {
 					return res.send('No data found');
 				} else {
 					if (geom == "features") {
-						coll.features.push(getFeatureResult(result, spatialcol));
+						coll.features.push(geojson.getFeatureResult(result, spatialcol));
 					} else if (geom == "geometry") {
 						var shape = JSON.parse(result.geojson);
 						//shape.crs = crsobj;
@@ -123,7 +124,7 @@ module.exports.controller = function (app) {
 					return res.send('No data found');
 				} else {
 					if (geom == "features") {
-						coll.features.push(getFeatureResult(result, spatialcol));
+						coll.features.push(geojson.getFeatureResult(result, spatialcol));
 					} else if (geom == "geometry") {
 						var shape = JSON.parse(result.geojson);
 						//shape.crs = crsobj;
@@ -230,30 +231,5 @@ module.exports.controller = function (app) {
 			retval.spatialColumn = result.f_geography_column;
 		}
 		return retval;
-	}
-
-	function getFeatureResult(result, spatialcol) {
-		var props = new Object;
-		var crsobj = {
-			"type" : "name",
-			"properties" : {
-				"name" : "urn:ogc:def:crs:EPSG:6.3:4326"
-			}
-		};
-		for (var k in result) {
-			if (result.hasOwnProperty(k)) {
-				var nm = "" + k;
-				if ((nm != "geojson") && nm != spatialcol) {
-					props[nm] = result[k];
-				}
-			}
-		}
-
-		return {
-			type : "Feature",
-			crs : crsobj,
-			geometry : JSON.parse(result.geojson),
-			properties : props
-		};
 	}
 }
