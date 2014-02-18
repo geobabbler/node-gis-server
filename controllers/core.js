@@ -1,6 +1,4 @@
 var pg = require('pg');
-//var conString = "postgres://{username}:{password}@{host}:{port}/{database}";
-var conString = "postgres://bdollins:ZAQ!xsw2@localhost:5432/geo2";
 
 module.exports.controller = function (app) {
 
@@ -10,7 +8,7 @@ module.exports.controller = function (app) {
 	 * retrieve all features (this could be really slow and is probably not what you really want to do)
 	 */
 	app.get('/vector/:schema/:table/:geom', function (req, res, next) {
-		var client = new pg.Client(conString);
+		var client = new pg.Client(app.conString);
 		var geom = req.params.geom.toLowerCase();
 		if ((geom != "features") && (geom != "geometry")) {
 			res.status(404).send("Resource '" + geom + "' not found");
@@ -86,7 +84,7 @@ module.exports.controller = function (app) {
 			res.status(404).send("Resource '" + geom + "' not found");
 			return;
 		}
-		var client = new pg.Client(conString);
+		var client = new pg.Client(app.conString);
 		var schemaname = req.params.schema;
 		var tablename = req.params.table;
 		var fullname = schemaname + "." + tablename;
@@ -152,7 +150,7 @@ module.exports.controller = function (app) {
 
 	/* fetch table schema */
 	app.get('/vector/:schema/:table/schema', function (req, res, next) {
-		var client = new pg.Client(conString);
+		var client = new pg.Client(app.conString);
 		var schemaname = req.params.schema;
 		var tablename = req.params.table;
 		var fullname = schemaname + "." + tablename;
@@ -189,7 +187,7 @@ module.exports.controller = function (app) {
 
 	/* fetch table schema (not compatible with PostGIS versions prior to 1.5) */
 	app.get('/vector/layers/:geotype', function (req, res, next) {
-		var client = new pg.Client(conString);
+		var client = new pg.Client(app.conString);
 		var sql = "SELECT 'geometry' as geotype, * FROM geometry_columns;";
 		if (req.params.geotype.toLowerCase() == "geography") {
 			sql = "SELECT 'geography' as geotype, * FROM geography_columns;";

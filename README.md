@@ -16,3 +16,5 @@ Changelog
 2014-02-16 - Added function to return list of layers (geometry, geography, or both).
 
 2014-02-17 - Added capability to return either GeometryCollection or FeatureCollection objects, depending upon URL.
+
+2014-02-18 - Added leonardtown.js as example of application-specific extension.

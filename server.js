@@ -5,6 +5,7 @@ var express = require('express'),
 var app = express();
 app.use(express.bodyParser());
 app.use(app.router);
+app.conString = "postgres://bdollins:ZAQ!xsw2@localhost:5432/geo2";
 //app.use(error);
 
 process.on('uncaughtException', function (error) {
