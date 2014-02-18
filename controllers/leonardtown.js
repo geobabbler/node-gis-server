@@ -6,7 +6,7 @@ module.exports.controller = function (app) {
 	/* feature retrieval */
 
 	/**
-	 * retrieve all features (this could be really slow and is probably not what you really want to do)
+	 * retrieve all Leonardtown building of specified property type
 	 */
 	app.get('/leonardtown/buildings/:geom', function (req, res, next) {
 		var client = new pg.Client(app.conString);
@@ -15,66 +15,69 @@ module.exports.controller = function (app) {
 			res.status(404).send("Resource '" + geom + "' not found");
 			return;
 		}
-		var proptype = req.query.type;
-		var whereclause = ";";
-		if (proptype.toLowerCase() != "all"){
-			whereclause = " where structure_ = '" + proptype + "';";
-		}
 		var tablename = "leonardtown_bldgs";
 		var schemaname = "public";
-		var fullname = "public.leonardtown_bldgs";
-		client.connect();
-		var crsobj = {
-			"type" : "name",
-			"properties" : {
-				"name" : "urn:ogc:def:crs:EPSG:6.3:4326"
-			}
-		};
-		var idformat = "'" + req.params.id + "'";
-		idformat = idformat.toUpperCase();
+		var fullname = schemaname + "." + tablename;
 		var spatialcol = "";
-		var meta = client.query("select * from geometry_columns where f_table_name = '" + tablename + "' and f_table_schema = '" + schemaname + "';");
-		meta.on('row', function (row) {
-			var query;
-			var coll;
-			spatialcol = row.f_geometry_column;
-			if (geom == "features") {
-				query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson, * from " + fullname + whereclause);
-				coll = {
-					type : "FeatureCollection",
-					features : []
-				};
-			} else if (geom == "geometry") {
-				query = client.query("select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson from " + fullname + whereclause);
-				coll = {
-					type : "GeometryCollection",
-					geometries : []
-				};
+		var proptype = req.query.type;
+		var whereclause = ";";
+		if (typeof proptype != "undefined"){
+		if (proptype.toLowerCase() != "all") {
+			whereclause = " where structure_ = '" + proptype + "';";
+		}
+		}
+		var coll;
+		var sql = "";
+		client.connect(function (err) {
+			//var meta = client.query("select * from geometry_columns where f_table_name = '" + tablename + "' and f_table_schema = '" + schemaname + "';");
+			if (err) {
+				res.status(500).send(err);
+				//client.end();
+				return console.error('could not connect to postgres', err);				
 			}
-			query.on('row', function (result) {
-				if (!result) {
-					return res.send('No data found');
-				} else {
-					if (geom == "features") {
-						coll.features.push(geojson.getFeatureResult(result, spatialcol));
-					} else if (geom == "geometry") {
-						var shape = JSON.parse(result.geojson);
-						//shape.crs = crsobj;
-						coll.geometries.push(shape);
-					}
+			client.query("select * from geometry_columns where f_table_name = '" + tablename + "' and f_table_schema = '" + schemaname + "';", function (err, result) {
+				if (err) {
+					res.status(500).send(err);
+					client.end();
+					return console.error('error running query', err);
 				}
-			});
-
-			query.on('end', function (err, result) {
-				res.setHeader('Content-Type', 'application/json');
-				res.send(coll);
-			});
-			
-			query.on('error', function (error) {
-				//handle the error
-				//res.status(500).send(error);
-				//next();
+				console.log("meta: " + result.rows.length);
+				spatialcol = result.rows[0].f_geometry_column;
+				if (geom == "features") {
+					sql = "select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson, * from " + fullname + whereclause;
+					coll = {
+						type : "FeatureCollection",
+						features : []
+					};
+				} else if (geom == "geometry") {
+					sql = "select st_asgeojson(st_transform(" + spatialcol + ",4326)) as geojson from " + fullname + whereclause
+						coll = {
+						type : "GeometryCollection",
+						geometries : []
+					};
+				}
+				console.log(spatialcol);
+				client.query(sql, function (err, result) {
+					if (err) {
+						res.status(500).send(err);
+						client.end();
+						return console.error('error running query', err);
+					}
+//					console.log(result.rows.length);
+					for (var i = 0; i < result.rows.length; i++) {
+						if (geom == "features") {
+							coll.features.push(geojson.getFeatureResult(result.rows[i], "shape"));
+						} else if (geom == "geometry") {
+							var shape = JSON.parse(result.rows[i].geojson);
+							//shape.crs = crsobj;
+							coll.geometries.push(shape);
+						}
+					}
+					client.end();
+					res.send(coll);
+				});
 			});
 		});
 	});
+
 }
