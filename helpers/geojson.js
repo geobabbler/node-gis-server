@@ -6,6 +6,7 @@ exports.getFeatureResult = function(result, spatialcol) {
 				"name" : "urn:ogc:def:crs:EPSG:6.3:4326"
 			}
 		};
+		//builds feature properties from database columns
 		for (var k in result) {
 			if (result.hasOwnProperty(k)) {
 				var nm = "" + k;

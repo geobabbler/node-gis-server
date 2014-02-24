@@ -21,10 +21,10 @@ module.exports.controller = function (app) {
 		var spatialcol = "";
 		var proptype = req.query.type;
 		var whereclause = ";";
-		if (typeof proptype != "undefined"){
-		if (proptype.toLowerCase() != "all") {
-			whereclause = " where structure_ = '" + proptype + "';";
-		}
+		if (typeof proptype != "undefined") {
+			if (proptype.toLowerCase() != "all") {
+				whereclause = " where structure_ = '" + proptype + "';";
+			}
 		}
 		var coll;
 		var sql = "";
@@ -33,7 +33,7 @@ module.exports.controller = function (app) {
 			if (err) {
 				res.status(500).send(err);
 				//client.end();
-				return console.error('could not connect to postgres', err);				
+				return console.error('could not connect to postgres', err);
 			}
 			client.query("select * from geometry_columns where f_table_name = '" + tablename + "' and f_table_schema = '" + schemaname + "';", function (err, result) {
 				if (err) {
@@ -63,7 +63,7 @@ module.exports.controller = function (app) {
 						client.end();
 						return console.error('error running query', err);
 					}
-//					console.log(result.rows.length);
+					//					console.log(result.rows.length);
 					for (var i = 0; i < result.rows.length; i++) {
 						if (geom == "features") {
 							coll.features.push(geojson.getFeatureResult(result.rows[i], "shape"));

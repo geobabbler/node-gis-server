@@ -150,11 +150,13 @@ module.exports.controller = function (app) {
 	/*  Schema inspection functions  */
 
 	/* fetch table schema */
-	app.get('/vector/:schema/:table/schema', function (req, res, next) {
+	app.get('/vector/layer/:schema/:table/schema', function (req, res, next) {
+		console.log("in");
 		var client = new pg.Client(app.conString);
 		var schemaname = req.params.schema;
 		var tablename = req.params.table;
 		var fullname = schemaname + "." + tablename;
+		console.log(fullname);
 		var sql = "SELECT n.nspname as schemaname,c.relname as table_name,a.attname as column_name,format_type(a.atttypid, a.atttypmod) AS type,col_description(a.attrelid, a.attnum) as comments";
 		sql = sql + " FROM pg_class c INNER JOIN pg_namespace n ON c.relnamespace = n.oid LEFT JOIN pg_attribute a ON a.attrelid = c.oid";
 		sql = sql + " WHERE a.attnum > 0 and c.relname = '" + tablename + "' and n.nspname = '" + schemaname + "';";
