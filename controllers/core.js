@@ -3,6 +3,12 @@ var geojson = require('../helpers/geojson');
 
 module.exports.controller = function (app) {
 
+	app.all('*', function (req, res, next) {
+		res.header("Access-Control-Allow-Origin", "*");
+		res.header("Access-Control-Allow-Headers", "X-Requested-With");
+		next();
+	});
+
 	/* feature retrieval */
 
 	/**
@@ -64,7 +70,7 @@ module.exports.controller = function (app) {
 				res.setHeader('Content-Type', 'application/json');
 				res.send(coll);
 			});
-			
+
 			query.on('error', function (error) {
 				//handle the error
 				//res.status(500).send(error);
@@ -151,12 +157,10 @@ module.exports.controller = function (app) {
 
 	/* fetch table schema */
 	app.get('/vector/layer/:schema/:table/schema', function (req, res, next) {
-		console.log("in");
 		var client = new pg.Client(app.conString);
 		var schemaname = req.params.schema;
 		var tablename = req.params.table;
 		var fullname = schemaname + "." + tablename;
-		console.log(fullname);
 		var sql = "SELECT n.nspname as schemaname,c.relname as table_name,a.attname as column_name,format_type(a.atttypid, a.atttypmod) AS type,col_description(a.attrelid, a.attnum) as comments";
 		sql = sql + " FROM pg_class c INNER JOIN pg_namespace n ON c.relnamespace = n.oid LEFT JOIN pg_attribute a ON a.attrelid = c.oid";
 		sql = sql + " WHERE a.attnum > 0 and c.relname = '" + tablename + "' and n.nspname = '" + schemaname + "';";
