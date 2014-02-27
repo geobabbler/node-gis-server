@@ -18,3 +18,5 @@ Changelog
 2014-02-17 - Added capability to return either GeometryCollection or FeatureCollection objects, depending upon URL.
 
 2014-02-18 - Added leonardtown.js as example of application-specific extension.
+
+2014-02-27 - Added CORS and JSONP support
