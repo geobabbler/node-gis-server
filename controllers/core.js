@@ -1,8 +1,10 @@
 var pg = require('pg');
 var geojson = require('../helpers/geojson');
+var jsonp = require('../helpers/jsonp');
 
 module.exports.controller = function (app) {
 
+	/* enable CORS */
 	app.all('*', function (req, res, next) {
 		res.header("Access-Control-Allow-Origin", "*");
 		res.header("Access-Control-Allow-Headers", "X-Requested-With");
@@ -68,7 +70,7 @@ module.exports.controller = function (app) {
 
 			query.on('end', function (err, result) {
 				res.setHeader('Content-Type', 'application/json');
-				res.send(coll);
+				res.send(jsonp.getJsonP(req.query.callback, coll));
 			});
 
 			query.on('error', function (error) {
@@ -141,7 +143,7 @@ module.exports.controller = function (app) {
 
 			query.on('end', function (result) {
 				res.setHeader('Content-Type', 'application/json');
-				res.send(coll);
+				res.send(jsonp.getJsonP(req.query.callback, coll));
 
 			});
 			query.on('error', function (error) {
@@ -186,7 +188,7 @@ module.exports.controller = function (app) {
 
 		query.on('end', function (result) {
 			res.setHeader('Content-Type', 'application/json');
-			res.send(retval);
+			res.send(jsonp.getJsonP(req.query.callback, retval));
 			//
 		});
 
@@ -215,7 +217,7 @@ module.exports.controller = function (app) {
 
 		query.on('end', function (result) {
 			res.setHeader('Content-Type', 'application/json');
-			res.send(retval);
+			res.send(jsonp.getJsonP(req.query.callback, retval));
 		});
 
 	});

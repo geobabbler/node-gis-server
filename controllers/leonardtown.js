@@ -1,5 +1,6 @@
 var pg = require('pg');
 var geojson = require('../helpers/geojson');
+var jsonp = require('../helpers/jsonp');
 
 module.exports.controller = function (app) {
 
@@ -74,7 +75,7 @@ module.exports.controller = function (app) {
 						}
 					}
 					client.end();
-					res.send(coll);
+					res.send(jsonp.getJsonP(req.query.callback, coll));
 				});
 			});
 		});
